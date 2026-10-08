@@ -50,7 +50,7 @@ async function carica() {
       o.f.cat = `${String(o.n).padStart(2, '0')} · ${D.cat[o.n].nome}`;
       o._x = norm(o.c) + ' ' + o.a.map(norm).join(' ');
       const sz = o.f.sez ? o.f.sez.replace(' mm²', '') : '';
-      const compatto = o.f.anime && sz ? `${o.f.anime}x${sz} ${o.f.pe ? o.f.anime + 'g' + sz : ''}` : '';
+      const compatto = o.f.anime && sz ? `k${o.f.anime}x${sz} ${o.f.pe ? 'k' + o.f.anime + 'g' + sz : ''}` : '';
       o._w = senzaAccenti([o.c, o.a.join(' '), o.t, o.b, o.d, compatto, o.s.join(' '), Object.values(o.f).join(' ')].join(' '));
     }
     D.pronti = true;
@@ -80,9 +80,9 @@ function punteggioTesto(o, q) {            // q = { codice, parole[] }
 }
 function interrogaTesto(testo) {
   const t = testo.trim();
-  const q = senzaAccenti(t).replace(/(\d)\.(\d)/g, '$1,$2').replace(/(\d+)\s*([gx×*])\s*(\d+(?:,\d+)?)/g, (m, a, x, b) => a + (x === 'g' ? 'g' : 'x') + b);
+  const q = senzaAccenti(t).replace(/(\d)\.(\d)/g, '$1,$2').replace(/(\d+)\s*([gx×*])\s*(\d+(?:,\d+)?)/g, (m, a, x, b) => 'k' + a + (x === 'g' ? 'g' : 'x') + b);
   const parole = q.split(/[\s;]+/).map(w => w.replace(/^,+|,+$/g, '')).filter(w => w.length >= 2);
-  const unico = !/\s/.test(t) && /\d/.test(t) && t.length >= 3;
+  const unico = !/\s/.test(t) && /\d/.test(t) && t.length >= 3 && !/^k\d+[gx]\d/.test(q);
   return { codice: unico ? norm(t) : '', parole: unico ? [senzaAccenti(t)] : parole, vuoto: !t };
 }
 
@@ -361,7 +361,7 @@ function interpreta(frase) {
   for (const c of CONCETTI) {
     const m = c.rx.exec(t);
     if (!m) continue;
-    t = t.replace(m[0], ' ');
+    t = t.replace(new RegExp(c.rx.source, 'g'), ' ');
     const dico = typeof c.dico === 'function' ? c.dico(m) : c.dico;
     if (c.parola) { parole.push(c.parola); continue; }
     if (c.multi) {
